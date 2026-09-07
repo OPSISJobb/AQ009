@@ -2,12 +2,9 @@
 Lagniva-drivrutiner for stegmotorn samt MotorController som binder ihop
 drivrutin, kalibrering och tillstand.
 
-Tva drivrutiner finns:
-- LgpioStepper    : verklig hardvara via lgpio (STEP+DIR till din driver,
-                    hemsensor pa en GPIO-ingang).
-- SimulatedStepper: mjukvarusimulering, anvands automatiskt om lgpio/
-                    hardvaran inte kan initieras (t.ex. under
-                    utveckling/test innan motorn ar inkopplad).
+En drivrutin finns:
+- LgpioStepper: verklig hardvara via lgpio (STEP+DIR till din driver,
+                hemsensor pa en GPIO-ingang).
 """
 
 import logging
@@ -111,66 +108,10 @@ class LgpioStepper(BaseStepper):
             logger.exception("Fel vid nedstangning av GPIO")
 
 
-class SimulatedStepper(BaseStepper):
-    """Later hjulet snurra i (ungefar) verklig tid utan hardvara. Startar
-    pa ett godtyckligt icke-hemma-lage sa hemkorning gar att testa.
-
-    Hemsensorn simuleras med en liten fysisk bredd (precis som en riktig
-    brytare/flagga) istallet for en enda exakt punkt - annars kan en
-    grov sokning med stegvis chunkning missa en punktsensor helt om
-    stegstorleken inte gar jamnt upp i avstandet till noll."""
-
-    _HOME_SENSOR_WINDOW = 6  # steg at vardera hall om noll
-
-    def __init__(self):
-        self._pos = 500 % config.STEPS_PER_REV
-        self._lock = threading.Lock()
-        logger.info("SimulatedStepper aktiv (ingen riktig hardvara anvands)")
-
-    def move_steps(self, n_steps, speed_sps, direction=1, abort_event=None, on_progress=None):
-        if n_steps <= 0:
-            return
-        sign = 1 if direction >= 0 else -1
-        total_time = n_steps / float(speed_sps)
-        start = time.time()
-        done_steps = 0
-        interval = 0.02
-        while True:
-            elapsed = time.time() - start
-            if elapsed >= total_time:
-                break
-            if abort_event is not None and abort_event.is_set():
-                frac = elapsed / total_time if total_time > 0 else 1.0
-                moved = int(n_steps * frac) - done_steps
-                with self._lock:
-                    self._pos = (self._pos + sign * moved) % config.STEPS_PER_REV
-                raise MovementAborted()
-            if on_progress is not None:
-                on_progress(min(n_steps, elapsed / total_time * n_steps))
-            time.sleep(interval)
-        with self._lock:
-            self._pos = (self._pos + sign * n_steps) % config.STEPS_PER_REV
-        if on_progress is not None:
-            on_progress(n_steps)
-
-    def read_home_sensor(self) -> bool:
-        with self._lock:
-            dist = min(self._pos, config.STEPS_PER_REV - self._pos)
-            return dist <= self._HOME_SENSOR_WINDOW
-
-    def close(self):
-        pass
-
-
 def create_driver():
-    """Valjer verklig hardvara om mojligt, annars simulering."""
-    if config.FORCE_SIMULATION:
-        return SimulatedStepper(), True
-    try:
-        return LgpioStepper(), False
-    except Exception as exc:
-        logger.warning("Kunde inte initiera lgpio-hardvara (%s) - anvander simulering.", exc)
-        return SimulatedStepper(), True
+    """Oppnar den verkliga hardvarudrivrutinen. Gar det inte ar det ett
+    riktigt fel - programmet kor aldrig utan motor."""
+    return LgpioStepper()
 
 
 # ---------------------------------------------------------------------------
@@ -179,7 +120,7 @@ def create_driver():
 
 class MotorController:
     def __init__(self):
-        self.driver, self.simulated = create_driver()
+        self.driver = create_driver()
         self.calibration = calibration.load_calibration()
 
         self.current_step = None     # None = okant lage (ej hemkord)
@@ -240,7 +181,6 @@ class MotorController:
                 "active_position": self.active_position,
                 "homing_progress": self.homing_progress,
                 "error": self.error,
-                "simulated": self.simulated,
                 "calibration": dict(self.calibration),
                 "steps_per_rev": config.STEPS_PER_REV,
                 "num_positions": config.NUM_POSITIONS,

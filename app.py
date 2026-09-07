@@ -113,7 +113,6 @@ if __name__ == "__main__":
     )
     serial_listener.start()
     logger.info(
-        "Startar webbserver pa http://%s:%d (simulerad motor: %s)",
-        config.WEB_HOST, config.WEB_PORT, motor.simulated,
+        "Startar webbserver pa http://%s:%d", config.WEB_HOST, config.WEB_PORT,
     )
     socketio.run(app, host=config.WEB_HOST, port=config.WEB_PORT, allow_unsafe_werkzeug=True)

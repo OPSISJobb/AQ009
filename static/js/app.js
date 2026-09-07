@@ -4,7 +4,6 @@
   const socket = io();
 
   const statusPill = document.getElementById("statusPill");
-  const simBadge = document.getElementById("simBadge");
   const stepReadout = document.getElementById("stepReadout");
   const errorBanner = document.getElementById("errorBanner");
   const cylinderGroup = document.getElementById("cylinderGroup");
@@ -126,8 +125,6 @@
       statusPill.textContent = "Hemkörd - mellanläge";
       statusPill.classList.add("homed");
     }
-
-    simBadge.hidden = !state.simulated;
 
     if (state.current_step !== null) {
       stepReadout.textContent = `steg: ${state.current_step} / ${state.steps_per_rev}`;

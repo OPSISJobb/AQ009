@@ -143,8 +143,3 @@ SERIAL_ACK_FORMAT = "eko"
 CALIBRATION_FILE = os.path.join(BASE_DIR, "data", "calibration.json")
 WEB_HOST = "0.0.0.0"
 WEB_PORT = 8080
-
-# Om True (eller om lgpio/RPi-hardvara inte kan initieras) anvands en
-# mjukvarusimulerad motor istallet for verklig GPIO. Satt till False for
-# att tvinga fram verklig hardvara (och fa ett tydligt fel om det inte gar).
-FORCE_SIMULATION = False

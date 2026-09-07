@@ -61,11 +61,8 @@ python3 app.py
 Öppna `http://localhost:8080/` på touchskärmen (eller `http://<pi-ip>:8080/`
 från en annan dator på samma nät).
 
-**Om motorn inte är inkopplad** (eller `lgpio` inte kan initiera GPIO) faller
-programmet tillbaka till en **mjukvarusimulerad motor** - webbsidan fungerar
-likadant, hjulet "snurrar" i ungefär rätt tid, och en gul badge "SIMULERAD
-MOTOR" visas överst. Sätt `FORCE_SIMULATION = True` i `config.py` för att
-tvinga simulering även när riktig hårdvara finns.
+**Riktig hårdvara krävs** - det finns ingen simulerad motor. Kan `lgpio` inte
+initiera GPIO avbryts starten med ett fel istället för att köra vidare.
 
 Ingen hemkörning sker vid uppstart - hjulet står kvar tills AR skickat en av
 följderna nedan eller någon tryckt Hemkörning på webbsidan. Tills dess är
