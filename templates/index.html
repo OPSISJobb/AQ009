@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<title>AQ009 - Hjulstyrning</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app">
+
+  <header class="topbar">
+    <div class="status-pill" id="statusPill">Ansluter...</div>
+    <div class="sim-badge" id="simBadge" hidden>SIMULERAD MOTOR</div>
+    <div class="step-readout" id="stepReadout"></div>
+  </header>
+
+  <div id="errorBanner" class="error-banner" hidden></div>
+
+  <main class="main">
+    <section class="wheel-section">
+      <svg id="wheelSvg" viewBox="-160 -160 320 320" class="wheel-svg">
+        <circle class="wheel-frame" cx="0" cy="0" r="150"></circle>
+        <g id="cylinderGroup"></g>
+        <!-- fast pekare uppe som visar aktivt lage -->
+        <polygon class="pointer" points="0,-172 -14,-148 14,-148"></polygon>
+        <circle class="hub" cx="0" cy="0" r="18"></circle>
+      </svg>
+    </section>
+
+    <section class="controls-section">
+      <div class="position-grid" id="positionGrid"></div>
+
+      <div class="action-row">
+        <button id="homeBtn" class="btn btn-home">Hemkörning</button>
+        <button id="calibrateToggleBtn" class="btn btn-cal">Kalibrera</button>
+        <button id="stopBtn" class="btn btn-stop">NÖDSTOPP</button>
+      </div>
+    </section>
+  </main>
+
+  <section id="calibrationPanel" class="calibration-panel" hidden>
+    <h2>Kalibrering</h2>
+    <p class="cal-help">
+      Använd jogg-knapparna för att flytta hjulet till exakt rätt fysiskt läge,
+      tryck sedan "Spara" under det positionsnumret. Kräver att hjulet är hemkört.
+    </p>
+
+    <div class="jog-row">
+      <button class="btn btn-jog" data-jog="-100">-100</button>
+      <button class="btn btn-jog" data-jog="-10">-10</button>
+      <button class="btn btn-jog" data-jog="-1">-1</button>
+    </div>
+    <div class="jog-row">
+      <button class="btn btn-jog" data-jog="1">+1</button>
+      <button class="btn btn-jog" data-jog="10">+10</button>
+      <button class="btn btn-jog" data-jog="100">+100</button>
+    </div>
+
+    <div class="save-grid" id="saveGrid"></div>
+
+    <button id="closeCalibrationBtn" class="btn btn-secondary">Stäng kalibrering</button>
+  </section>
+
+</div>
+
+<script src="{{ url_for('static', filename='js/socket.io.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

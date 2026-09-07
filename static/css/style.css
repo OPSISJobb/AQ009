@@ -1,0 +1,254 @@
+:root {
+  --bg: #14171c;
+  --panel: #1e2229;
+  --panel-border: #333a45;
+  --text: #eef1f5;
+  --text-dim: #9aa4b2;
+  --accent: #3b8eea;
+  --green: #35c46a;
+  --amber: #e3a83b;
+  --red: #e14b4b;
+  --chamber: #2a2f38;
+  --chamber-active: #35c46a;
+  --chamber-border: #454d5a;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+  overscroll-behavior: none;
+}
+
+.app {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 10px;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-pill {
+  font-size: 1.4rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--panel);
+  border: 2px solid var(--panel-border);
+}
+.status-pill.homed { border-color: var(--green); color: var(--green); }
+.status-pill.not-homed { border-color: var(--red); color: var(--red); }
+.status-pill.moving { border-color: var(--amber); color: var(--amber); }
+
+.sim-badge {
+  font-size: 1rem;
+  font-weight: 700;
+  padding: 8px 14px;
+  border-radius: 8px;
+  background: #4a3a12;
+  color: var(--amber);
+  border: 1px solid var(--amber);
+}
+
+.step-readout {
+  margin-left: auto;
+  font-size: 1.1rem;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.error-banner {
+  background: #3a1616;
+  border: 2px solid var(--red);
+  color: #ffb3b3;
+  padding: 10px 16px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.main {
+  flex: 1;
+  display: flex;
+  gap: 16px;
+  min-height: 0;
+}
+
+.wheel-section {
+  flex: 1.1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+
+.wheel-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 560px;
+  max-height: 560px;
+}
+
+.wheel-frame {
+  fill: var(--panel);
+  stroke: var(--panel-border);
+  stroke-width: 3;
+}
+
+.chamber-group { transition: transform 0.08s linear; }
+
+.chamber {
+  fill: var(--chamber);
+  stroke: var(--chamber-border);
+  stroke-width: 2;
+  transition: fill 0.15s ease;
+}
+.chamber.active { fill: var(--chamber-active); }
+
+.chamber-label {
+  fill: var(--text);
+  font-size: 22px;
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+
+.pointer {
+  fill: var(--accent);
+}
+
+.hub {
+  fill: var(--panel-border);
+}
+
+.controls-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.position-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  flex: 1;
+}
+
+.pos-btn {
+  font-size: 2rem;
+  font-weight: 700;
+  border-radius: 16px;
+  border: 2px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  touch-action: manipulation;
+}
+.pos-btn:active { transform: scale(0.96); }
+.pos-btn.active { background: var(--green); border-color: var(--green); color: #06210f; }
+.pos-btn:disabled { opacity: 0.4; }
+
+.action-row {
+  display: flex;
+  gap: 10px;
+}
+
+.btn {
+  font-size: 1.3rem;
+  font-weight: 700;
+  padding: 18px 10px;
+  border-radius: 14px;
+  border: 2px solid var(--panel-border);
+  background: var(--panel);
+  color: var(--text);
+  flex: 1;
+  touch-action: manipulation;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-home { border-color: var(--accent); color: var(--accent); }
+.btn-cal { border-color: var(--text-dim); }
+.btn-stop {
+  background: var(--red);
+  border-color: var(--red);
+  color: #2a0a0a;
+  flex: 1.2;
+}
+
+.calibration-panel {
+  background: var(--panel);
+  border: 2px solid var(--panel-border);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.calibration-panel h2 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.cal-help {
+  margin: 0;
+  color: var(--text-dim);
+  font-size: 0.95rem;
+}
+
+.jog-row {
+  display: flex;
+  gap: 8px;
+}
+.btn-jog {
+  flex: 1;
+  padding: 16px 4px;
+  font-size: 1.2rem;
+}
+
+.save-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.save-btn {
+  padding: 14px 4px;
+  border-radius: 12px;
+  border: 2px solid var(--panel-border);
+  background: var(--chamber);
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 600;
+  touch-action: manipulation;
+}
+.save-btn .step-val {
+  display: block;
+  font-weight: 400;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
+.btn-secondary {
+  background: transparent;
+}
