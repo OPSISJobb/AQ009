@@ -16,6 +16,7 @@ from flask import Flask, render_template
 from flask_socketio import SocketIO
 
 import config
+import status_led
 from stepper import MotorController
 from serial_listener import SerialListener
 
@@ -95,6 +96,7 @@ def _shutdown():
     logger.info("Stanger ner - stoppar serial-lyssnare och motor")
     serial_listener.stop()
     motor.shutdown()
+    status_led.off()
 
 
 atexit.register(_shutdown)
@@ -111,6 +113,8 @@ if __name__ == "__main__":
         "Startar RS232-lyssnaren utan hemkorning - hjulet star kvar tills "
         "AR skickat 00,10,20,30 eller 0101,1101,2101,3101"
     )
+    # Tand statuslampan - tyst om dioden saknas eller inte fungerar
+    status_led.on()
     serial_listener.start()
     logger.info(
         "Startar webbserver pa http://%s:%d", config.WEB_HOST, config.WEB_PORT,
