@@ -5,7 +5,7 @@ Tva granssnitt mot samma motor:
   * RS232 (serial_listener.py) - kommandon fran AR, det som styr i drift.
   * Webbsida (denna fil) - manuell korning, hemkorning och kalibrering.
 
-Startas med:  ./venv/bin/python3 app.py
+Startas med:  python3 app.py
 Sida:         http://<pi-adress>:8080/   (eller localhost pa samma maskin)
 """
 

@@ -37,14 +37,16 @@ separat, så det spelar mindre roll om `STEPS_PER_REV` inte stämmer exakt.
 
 ## Installation
 
+Beroendena installeras systemvitt med apt - ingen venv används:
+
 ```bash
-cd AQ009
-python3 -m venv --system-site-packages venv
-./venv/bin/pip install -r requirements.txt
+sudo apt install python3-flask python3-flask-socketio \
+                 python3-simple-websocket python3-serial python3-lgpio
 ```
 
-`--system-site-packages` gör att venv:en kan använda de apt-installerade
-`lgpio`/`RPi.GPIO`-paketen som följer med Raspberry Pi OS.
+`python3-serial` och `python3-lgpio` följer oftast redan med Raspberry Pi OS.
+`requirements.txt` listar samma beroenden för den som hellre installerar med
+pip (`pip install --break-system-packages -r requirements.txt`).
 
 RS232-HAT:en kräver att SPI + `sc16is75x-spi`-overlayet är aktiverat i
 `/boot/firmware/config.txt` för att `/dev/ttySC0` ska finnas.
@@ -52,7 +54,8 @@ RS232-HAT:en kräver att SPI + `sc16is75x-spi`-overlayet är aktiverat i
 ## Köra
 
 ```bash
-./venv/bin/python3 app.py
+cd AQ009
+python3 app.py
 ```
 
 Öppna `http://localhost:8080/` på touchskärmen (eller `http://<pi-ip>:8080/`
