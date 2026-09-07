@@ -4,9 +4,8 @@ vidarebefordrar dem till MotorController. Hjulets 9 positioner motsvarar
 AR:s "cylindrar".
 
 Protokoll (aterskapat ur sniffad AR<->CU007-trafik - detta ar det verkliga
-protokollet fran motparten, inte nagot vi har hittat pa; sniffningen och
-analysen ligger kvar i utvecklingsrepot Proj1): en textrad per kommando,
-avslutas med '\\r' (INTE '\\n').
+protokollet fran motparten, inte nagot vi har hittat pa): en textrad per
+kommando, avslutas med '\\r' (INTE '\\n').
 
     AR -> oss:
         "<XX>"        -> tvasiffrig "ping"-kod, t.ex. "00" (AR oppnar sin

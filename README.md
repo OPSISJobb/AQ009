@@ -147,6 +147,7 @@ Skickar din motpart ett annat format: justera `parse_command()` i
 | `serial_listener.py` | RS232-protokollet mot AR |
 | `templates/`, `static/` | Webbsidan |
 
-Utvecklings- och analysverktygen (linjelyssnare, signalregister, sniffad
-CU007-logg, motortester) ligger kvar i utvecklingsrepot `Proj1` och följer
-inte med hit.
+Repot innehåller bara det som behövs för drift. Utvecklings- och
+analysverktygen (linjelyssnare, signalregister med betydelseuppslag, den
+sniffade CU007-loggen och motortesterna) ingår inte - de behövs bara vid
+protokollanalys och bringup, inte för att köra hjulet.
