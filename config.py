@@ -63,7 +63,7 @@ NUM_POSITIONS = 9
 # (uppmatt 2x mikrostegning istallet for antagna 16x) - annars hade samma
 # steg/sekund-varden gett 8x snabbare fysisk rotation an tidigare.
 # ---------------------------------------------------------------------------
-RUN_SPEED_STEPS_PER_SEC = 100
+RUN_SPEED_STEPS_PER_SEC = 25           #     # anvands vid normal korning (goto_position) Default 100
 JOG_SPEED_STEPS_PER_SEC = 25              # anvands vid kalibrerings-jogg
 
 # Hemkorning kan inte backa och narma sig igen (ingen DIR), sa hela sokningen
