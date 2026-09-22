@@ -46,14 +46,14 @@
     </p>
 
     <div class="jog-row">
-      <button class="btn btn-jog" data-jog="-100">-100</button>
-      <button class="btn btn-jog" data-jog="-10">-10</button>
-      <button class="btn btn-jog" data-jog="-1">-1</button>
+      {% for steg in jog_steps|reverse %}
+      <button class="btn btn-jog" data-jog="-{{ steg }}">-{{ steg }}</button>
+      {% endfor %}
     </div>
     <div class="jog-row">
-      <button class="btn btn-jog" data-jog="1">+1</button>
-      <button class="btn btn-jog" data-jog="10">+10</button>
-      <button class="btn btn-jog" data-jog="100">+100</button>
+      {% for steg in jog_steps %}
+      <button class="btn btn-jog" data-jog="{{ steg }}">+{{ steg }}</button>
+      {% endfor %}
     </div>
 
     <div class="save-grid" id="saveGrid"></div>

@@ -34,6 +34,9 @@ class BaseStepper:
     def move_steps(self, n_steps, speed_sps, direction=1, abort_event=None, on_progress=None):
         raise NotImplementedError
 
+    def step_once(self, speed_sps, direction=1):
+        raise NotImplementedError
+
     def read_home_sensor(self) -> bool:
         raise NotImplementedError
 
@@ -89,6 +92,20 @@ class LgpioStepper(BaseStepper):
             time.sleep(0.01)
         if on_progress is not None:
             on_progress(n_steps)
+
+    def step_once(self, speed_sps, direction=1):
+        """En enda puls, direkt pa pinnen. Hemkorningen laser sensorn mellan
+        varje mikrosteg och kan darfor inte anvanda move_steps() - den startar
+        en pulstrain och pollar tx_busy var 10:e ms, vilket vid 6400 steg/varv
+        (1/32) hade gjort hemkorningen flera minuter lang. Har kostar ett steg
+        bara sin egen pulstid."""
+        lgpio = self._lgpio
+        lgpio.gpio_write(self.h, config.DIR_PIN, self._dir_level(direction))
+        half = 0.5 / float(speed_sps)
+        lgpio.gpio_write(self.h, config.STEP_PIN, 1)
+        time.sleep(half)
+        lgpio.gpio_write(self.h, config.STEP_PIN, 0)
+        time.sleep(half)
 
     def read_home_sensor(self) -> bool:
         level = self._lgpio.gpio_read(self.h, config.HOME_SENSOR_PIN)
@@ -236,7 +253,7 @@ class MotorController:
         if self.current_step is None:
             self.active_position = None
             return
-        tolerance = 3  # steg
+        tolerance = config.POSITION_TOLERANCE_STEPS
         spr = config.STEPS_PER_REV
         best_pos, best_dist = None, None
         for pos, step in self.calibration.items():
@@ -343,14 +360,25 @@ class MotorController:
             # for en andra annalkning - for att traffa exakt samma stegvarde
             # vid varje hemkorning provas darfor sensorn efter varje enskilt
             # steg, hela vagen.
+            #
+            # Vid 1/32 ar ett varv 6400 mikrosteg, sa sokningen kan behova
+            # tiotusentals steg. Darfor pulsas stegen med step_once() (ingen
+            # pulstrain att polla) och granssnittet uppdateras hogst var
+            # 100:e ms istallet for efter varje steg - annars hade
+            # socket-trafiken ensam bromsat hemkorningen.
             moved = 0
+            last_notify = 0.0
             while not driver.read_home_sensor():
-                driver.move_steps(1, config.HOMING_SPEED_STEPS_PER_SEC,
-                                   abort_event=self._abort_event)
+                if self._abort_event.is_set():
+                    raise MovementAborted()
+                driver.step_once(config.HOMING_SPEED_STEPS_PER_SEC)
                 moved += 1
                 with self._lock:
                     self.homing_progress = moved
-                self._notify()
+                now = time.time()
+                if now - last_notify >= 0.1:
+                    last_notify = now
+                    self._notify()
                 if moved > config.HOMING_MAX_STEPS:
                     raise HomingError("Hittade inte hemsensorn - kontrollera koppling")
 

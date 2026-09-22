@@ -30,10 +30,22 @@ Allt (pinnar, aktiv nivå på sensorn, steg/varv, seriellport, hastigheter)
 ställs in i **`config.py`**. Koden behöver inte ändras på fler ställen.
 
 `STEPS_PER_REV` är totalt antal pulser per varv som drivern förväntar sig
-(fullsteg × mikrosteg inställt på drivern). Uppmätt till 400 här (200 × 2).
-Är du osäker: sätt ett rimligt värde, kör en hemkörning och kalibrera sedan
-positionerna via webbsidan - varje positions verkliga stegvärde sparas
-separat, så det spelar mindre roll om `STEPS_PER_REV` inte stämmer exakt.
+(fullsteg × mikrosteg inställt på drivern). Drivern körs på **1/32
+mikrostegning**, så värdet är 6400 (200 × 32). DIP-switcharna på drivkortet
+måste vara ställda på 1/32 - står de på något annat går hjulet fel långt per
+kommando (t.ex. 1/16 av ett varv om de står kvar på 1/2 som tidigare).
+
+Hastigheterna i `config.py` anges i mikrosteg/sekund och är därför också
+16 gånger högre än vid 1/2 (400 i stället för 25) - hjulet snurrar lika fort
+fysiskt som förut, men mjukare och med 16 gånger finare upplösning. Vill du
+ändra mekanisk hastighet: ändra `RUN_SPEED_STEPS_PER_SEC`,
+`JOG_SPEED_STEPS_PER_SEC` och `HOMING_SPEED_STEPS_PER_SEC`.
+
+Efter byte av mikrostegning: kör en hemkörning och **kalibrera om de nio
+positionerna** via webbsidan. De sparade stegvärdena i
+`data/calibration.json` är nollställda till jämnt fördelade nominella lägen
+för 6400 steg/varv - varje positions verkliga stegvärde sparas separat, så
+det spelar mindre roll om `STEPS_PER_REV` inte stämmer exakt.
 
 ## Installation
 

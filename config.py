@@ -42,10 +42,16 @@ HOME_SENSOR_PULL = "up"
 # 23HD-serien = 1,8 grader/steg (200 fullsteg/varv).
 #
 # Totalt antal steg per varv PA DRIVERNS INGANG (fullsteg * mikrostegsvarde
-# installt pa drivern). Uppmatt med test_microstepping.py (2026-08-14):
-# drivern kor 2x mikrostegning, dvs 200 * 2 = 400 - inte 16x som tidigare
-# antogs. Verklig position per lage justeras sedan via kalibrering.
-STEPS_PER_REV = 400
+# installt pa drivern). Drivern ar nu stalld pa 1/32 mikrostegning
+# (tidigare 1/2, dvs 400 steg/varv), dvs 200 * 32 = 6400 steg per varv.
+# VIKTIGT: DIP-switcharna pa drivkortet maste sta pa 1/32 - annars stammer
+# inte det har vardet och hjulet gar 16 ggr for kort per kommando.
+# Verklig position per lage justeras sedan via kalibrering.
+STEPS_PER_REV = 6400
+
+# Mikrosteg per fullsteg pa drivern (1/32). Anvands bara for att gora
+# jogg-steg och tolerans lasbara nedan.
+MICROSTEPS_PER_FULL_STEP = 32
 
 NUM_POSITIONS = 9
 
@@ -59,22 +65,34 @@ NUM_POSITIONS = 9
 # Hastigheter (i steg/sekund). Halls lagt under kalibrering/hemkorning for
 # noggrannhet, hogre for normal korning.
 #
-# Sankta 8x (2026-08-14) efter att STEPS_PER_REV andrades fran 3200 till 400
-# (uppmatt 2x mikrostegning istallet for antagna 16x) - annars hade samma
-# steg/sekund-varden gett 8x snabbare fysisk rotation an tidigare.
+# OBS: varden i steg/sekund, dvs MIKROsteg/sekund. Vid bytet fran 1/2 till
+# 1/32 mikrostegning hojdes de darfor 16x (25 -> 400) sa hjulet snurrar
+# exakt lika fort fysiskt som forut - bara mjukare och med 16x finare
+# upplosning. Vill du ha en langsammare/snabbare mekanisk hastighet: andra
+# de har vardena (400 steg/s = 1/16 varv per sekund).
 # ---------------------------------------------------------------------------
-RUN_SPEED_STEPS_PER_SEC = 25           #     # anvands vid normal korning (goto_position) Default 100
-JOG_SPEED_STEPS_PER_SEC = 25              # anvands vid kalibrerings-jogg
+RUN_SPEED_STEPS_PER_SEC = 400          # anvands vid normal korning (goto_position)
+JOG_SPEED_STEPS_PER_SEC = 400          # anvands vid kalibrerings-jogg
 
 # Hemkorning kan inte backa och narma sig igen (ingen DIR), sa hela sokningen
 # gors steg-for-steg i denna hastighet for att traffa hemsensorns lage
 # exakt likadant varje gang.
-HOMING_SPEED_STEPS_PER_SEC = 25
+HOMING_SPEED_STEPS_PER_SEC = 400
 
 # Sakerhetsgrans: om hemkorning inte hittar sensorn inom detta antal steg,
 # avbryt med fel (skyddar mot att motorn snurrar oandligt om sensorn saknas
 # eller ar trasig).
 HOMING_MAX_STEPS = STEPS_PER_REV * 2
+
+# Hur nara ett kalibrerat lage hjulet maste sta for att raknas som "i laget"
+# (visas som aktiv position i granssnittet). 1,5 fullsteg = samma vinkel som
+# de 3 steg som gallde vid 1/2 mikrostegning.
+POSITION_TOLERANCE_STEPS = MICROSTEPS_PER_FULL_STEP + MICROSTEPS_PER_FULL_STEP // 2
+
+# Joggsteg (mikrosteg) for de sex knapparna i kalibreringslaget, fran finaste
+# till grovsta. Vid 1/32 ar ett enskilt mikrosteg 0,056 grader - darfor ar
+# mellansteget ett helt fullsteg (32) och det grova tio fullsteg (320).
+JOG_STEP_SIZES = (1, MICROSTEPS_PER_FULL_STEP, MICROSTEPS_PER_FULL_STEP * 10)
 
 # ---------------------------------------------------------------------------
 # RS232

@@ -40,7 +40,9 @@ motor.on_state_change = _broadcast_state
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    # Joggknapparnas stegstorlekar kommer fran config sa de foljer med
+    # nar mikrostegningen andras (1 mikrosteg ar mycket kort vid 1/32).
+    return render_template("index.html", jog_steps=config.JOG_STEP_SIZES)
 
 
 @socketio.on("connect")
