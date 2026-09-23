@@ -19,6 +19,10 @@ STEP_PIN = 12          # Pulsutgang till drivern (ett pulses = ett steg)
 DIR_PIN = 16            # Riktningsutgang till drivern
 HOME_SENSOR_PIN = 26   # Ingang fran hemlages-triggern
 
+# Statuslampa som lyser sa lange app.py kor. Ar ingen diod inkopplad, eller
+# gar pinnen inte att ta, sker ingenting - inga felmeddelanden (status_led.py).
+STATUS_LED_PIN = 23
+
 # Om DIR-pinnens niva ger fel rotationsriktning, satt denna till True for
 # att vanda pa den utan att andra nagot annat.
 DIR_INVERT = False
@@ -59,7 +63,7 @@ NUM_POSITIONS = 9
 # (uppmatt 2x mikrostegning istallet for antagna 16x) - annars hade samma
 # steg/sekund-varden gett 8x snabbare fysisk rotation an tidigare.
 # ---------------------------------------------------------------------------
-RUN_SPEED_STEPS_PER_SEC = 100
+RUN_SPEED_STEPS_PER_SEC = 25           #     # anvands vid normal korning (goto_position) Default 100
 JOG_SPEED_STEPS_PER_SEC = 25              # anvands vid kalibrerings-jogg
 
 # Hemkorning kan inte backa och narma sig igen (ingen DIR), sa hela sokningen
