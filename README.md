@@ -76,9 +76,15 @@ från en annan dator på samma nät).
 **Riktig hårdvara krävs** - det finns ingen simulerad motor. Kan `lgpio` inte
 initiera GPIO avbryts starten med ett fel istället för att köra vidare.
 
-Ingen hemkörning sker vid uppstart - hjulet står kvar tills AR skickat en av
-följderna nedan eller någon tryckt Hemkörning på webbsidan. Tills dess är
-läget okänt och positionskommandon avvisas med "Ej hemkörd".
+**Hemkörning sker vid uppstart** (`HOME_ON_STARTUP = True` i `config.py`).
+Starten väntar in hemkörningen innan RS232-lyssnaren och webbservern går
+igång, så hjulets läge är känt redan när AR:s första kommando kan komma in -
+under den tiden (som mest två varvs sökning) svarar varken RS232 eller
+webbsidan.
+
+Sätts `HOME_ON_STARTUP = False` gäller det gamla beteendet: hjulet står kvar
+tills AR skickat en av följderna nedan eller någon tryckt Hemkörning på
+webbsidan, och positionskommandon avvisas med "Ej hemkörd" tills dess.
 
 ## Webbsidan
 
@@ -89,7 +95,8 @@ läget okänt och positionskommandon avvisas med "Ej hemkörd".
 - **1-9**: kör hjulet till respektive position, alltid framåt.
 - **NÖDSTOPP**: stoppar motorn omedelbart. Efter nödstopp är läget okänt igen -
   kör hemkörning på nytt.
-- **Kalibrera**: jogg-knappar (±1/±10/±100 steg) för att flytta hjulet till
+- **Kalibrera**: jogg-knappar (±1/±32/±320 mikrosteg, där 32 = ett fullsteg -
+  storlekarna sätts av `JOG_STEP_SIZES` i `config.py`) för att flytta hjulet till
   exakt rätt fysiskt läge, och en "Spara N"-knapp per position. Sparas till
   `data/calibration.json` och läses in vid nästa start.
 
@@ -131,6 +138,24 @@ Följden måste komma i rätt ordning, men AR:s omförsök (samma kod igen var 2
 sekund) bryter den inte, och inte heller cylinderkommandon däremellan - se
 `Foljd` i `serial_listener.py`. `<E>100` (tillbaka till mätningsläge) kör
 *inte* hem.
+
+### Hemkörning vid tyst RS232
+
+Har det inte kommit **någon** trafik alls från AR på ett visst antal timmar
+parkeras hjulet med en hemkörning. Ställs in i `config.py`:
+
+```python
+IDLE_HOME_AFTER_HOURS = 8      # antal timmar tystnad innan hemkörning
+IDLE_HOME_AFTER_HOURS = None   # (eller 0) funktionen används inte alls
+```
+
+Räkningen nollställs av all inkommande RS232-trafik, även rader som inte går
+att tolka - det är tystnad vakthunden reagerar på. Efter varje hemkörning
+börjar tiden om, så vid fortsatt tystnad hemkörs hjulet var X:e timme.
+Knapptryck på webbsidan räknas *inte* som livstecken. Vakthunden kräver
+`SERIAL_ENABLED = True`; är RS232-lyssnaren avstängd startas ingen vakthund.
+`IDLE_HOME_CHECK_INTERVAL_SEC` (standard 60 s) styr hur ofta klockan
+kontrolleras och behöver normalt inte ändras.
 
 ### Kvittensformat
 

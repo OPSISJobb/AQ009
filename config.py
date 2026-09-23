@@ -95,6 +95,36 @@ POSITION_TOLERANCE_STEPS = MICROSTEPS_PER_FULL_STEP + MICROSTEPS_PER_FULL_STEP /
 JOG_STEP_SIZES = (1, MICROSTEPS_PER_FULL_STEP, MICROSTEPS_PER_FULL_STEP * 10)
 
 # ---------------------------------------------------------------------------
+# Automatisk hemkorning
+# ---------------------------------------------------------------------------
+# Kor en hemkorning direkt nar app.py startar. Uppstarten vantar in
+# hemkorningen innan RS232-lyssnaren och webbservern startar, sa hjulets lage
+# ar kant redan nar forsta kommandot fran AR kan komma in.
+#
+# Satt till False for det gamla beteendet: hjulet star stilla med okant lage
+# tills AR skickar hela foljden 00,10,20,30 (setup-menyn) eller
+# 0101,1101,2101,3101 (kalibreringslage), eller nagon trycker Hemkorning pa
+# webbsidan. Tills dess avvisas goto-kommandon med "Ej hemkord".
+HOME_ON_STARTUP = True
+
+# Vakthund: har det inte kommit nagon signal alls fran AR pa RS232 pa sa har
+# manga timmar, kors en hemkorning sa hjulet parkeras i ett kant lage. Efter
+# varje hemkorning borjar tiden om, sa vid fortsatt tystnad hemkors hjulet
+# var X:e timme.
+#
+#   ett tal (t.ex. 8 eller 0.5)  -> antal timmar tystnad innan hemkorning
+#   None (eller 0)               -> funktionen anvands inte alls
+#
+# Rakningen nollstalls av ALL trafik fran AR - aven kommandon vi inte kanner
+# igen - inte av knapptryck pa webbsidan. Kraver SERIAL_ENABLED = True;
+# ar RS232-lyssnaren avstangd startas ingen vakthund.
+IDLE_HOME_AFTER_HOURS = 8
+
+# Hur ofta vakthunden tittar pa klockan (sekunder). Behover normalt inte
+# andras - lagre varde ger bara tatare kontroller, inte tidigare hemkorning.
+IDLE_HOME_CHECK_INTERVAL_SEC = 60
+
+# ---------------------------------------------------------------------------
 # RS232
 # ---------------------------------------------------------------------------
 # Satt till False for att helt stanga av RS232-lyssnaren (t.ex. innan

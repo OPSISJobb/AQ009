@@ -58,6 +58,10 @@ gangen) - bara ack:as. "Oppna cylinder N" -> motor.goto_position(N).
 
 Porten oppnas med automatiska ateranslutningsforsok, sa tjansten kan startas
 innan motparten (RS232-kabeln) ar ansluten.
+
+Utover de tva kommandofoljderna kor lyssnaren aven en vakthund: har det inte
+kommit nagon trafik alls fran AR pa config.IDLE_HOME_AFTER_HOURS timmar
+parkeras hjulet med en hemkorning. Se _watchdog_loop().
 """
 
 import logging
@@ -69,6 +73,29 @@ import serial
 import config
 
 logger = logging.getLogger(__name__)
+
+
+def idle_home_seconds():
+    """Tolkar config.IDLE_HOME_AFTER_HOURS till sekunder.
+
+    Returnerar None nar vakthunden inte ska anvandas (vardet None, 0, negativt
+    eller nagot som inte gar att tolka som ett tal).
+    """
+    varde = getattr(config, "IDLE_HOME_AFTER_HOURS", None)
+    if varde is None:
+        return None
+    try:
+        timmar = float(varde)
+    except (TypeError, ValueError):
+        logger.warning(
+            "Ogiltigt varde i config.IDLE_HOME_AFTER_HOURS (%r) - "
+            "vakthunden for tyst RS232 stangs av",
+            varde,
+        )
+        return None
+    if timmar <= 0:
+        return None
+    return timmar * 3600.0
 
 
 def parse_command(line: str):
@@ -155,12 +182,63 @@ class SerialListener:
         self._ser = None
         self._menyfoljd = Foljd(self.MENU_ENTRY_SEQUENCE)
         self._kalibreringsfoljd = Foljd(self.KALIBRERINGS_SEQUENCE)
+        # Nar det senast kom nagot fran AR. Monotont ur - opaverkat av att
+        # systemklockan stalls om (Pi:n utan natverk far ratt tid forst nar
+        # NTP hunnit svara, vilket annars kunde kasta vakthunden timmar fram).
+        self._senaste_trafik = time.monotonic()
+        self._watchdog_thread = None
 
     def start(self):
         if not config.SERIAL_ENABLED:
             logger.info("RS232-lyssnare avstangd (config.SERIAL_ENABLED = False)")
             return
+        self._senaste_trafik = time.monotonic()
         self._thread.start()
+        self._start_watchdog()
+
+    def _start_watchdog(self):
+        """Startar vakthunden som hemkor hjulet efter langre RS232-tystnad."""
+        idle_sekunder = idle_home_seconds()
+        if idle_sekunder is None:
+            logger.info(
+                "Ingen hemkorning vid tyst RS232 "
+                "(config.IDLE_HOME_AFTER_HOURS = %r)",
+                getattr(config, "IDLE_HOME_AFTER_HOURS", None),
+            )
+            return
+        logger.info(
+            "Vakthund igang: hemkorning om AR ar tyst i %.4g timmar",
+            idle_sekunder / 3600.0,
+        )
+        self._watchdog_thread = threading.Thread(
+            target=self._watchdog_loop, args=(idle_sekunder,), daemon=True,
+        )
+        self._watchdog_thread.start()
+
+    def _watchdog_loop(self, idle_sekunder: float):
+        # Kontrollintervallet kortas ner om granstiden ar kortare an
+        # intervallet (kan handa vid provkorning med t.ex. 0.01 timmar) sa
+        # hemkorningen inte drojer langre an vad som stallts in.
+        intervall = max(
+            1.0,
+            min(
+                float(getattr(config, "IDLE_HOME_CHECK_INTERVAL_SEC", 60)),
+                idle_sekunder,
+            ),
+        )
+        while not self._stop_event.wait(intervall):
+            tyst = time.monotonic() - self._senaste_trafik
+            if tyst < idle_sekunder:
+                continue
+            logger.info(
+                "Ingen RS232-trafik pa %.2f timmar (grans %.4g h) -> "
+                "kor hemkorning",
+                tyst / 3600.0, idle_sekunder / 3600.0,
+            )
+            # Nollstall fore hemkorningen: vid fortsatt tystnad hemkors
+            # hjulet igen forst nar hela granstiden gatt en gang till.
+            self._senaste_trafik = time.monotonic()
+            self.motor.home()
 
     def stop(self):
         self._stop_event.set()
@@ -206,6 +284,9 @@ class SerialListener:
                     raw = self._ser.read_until(b"\r")
                     if not raw:
                         continue
+                    # Livstecken fran AR - aven en rad vi inte kan tolka
+                    # raknas, det ar tystnad vakthunden reagerar pa.
+                    self._senaste_trafik = time.monotonic()
                     try:
                         line = raw.decode("ascii", errors="replace")
                     except Exception:

@@ -104,19 +104,46 @@ def _shutdown():
 atexit.register(_shutdown)
 
 
+def _hemkorning_vid_uppstart():
+    """Kor hemkorning innan RS232-lyssnaren slapps igang.
+
+    Hemkorningen vantas in (home_and_wait) sa inga AR-kommandon hinner komma
+    in medan hjulets lage fortfarande ar okant. Tar som mest den tid det tar
+    att soka igenom tva varv, se HOMING_MAX_STEPS - under tiden svarar varken
+    RS232 eller webbsidan.
+
+    Med HOME_ON_STARTUP = False galler det gamla beteendet: hjulet star kvar
+    med okant lage tills AR skickat hela foljden 00,10,20,30 (setup-menyn)
+    eller 0101,1101,2101,3101 (over till kalibreringslage), se
+    MENU_ENTRY_SEQUENCE/KALIBRERINGS_SEQUENCE i serial_listener.py, eller
+    nagon trycker Hemkorning pa webbsidan. Tills dess avvisas goto-kommandon
+    med "Ej hemkord" (stepper.py _do_goto).
+    """
+    if not getattr(config, "HOME_ON_STARTUP", True):
+        logger.info(
+            "Ingen hemkorning vid uppstart (config.HOME_ON_STARTUP = False) - "
+            "hjulet star kvar tills AR skickat 00,10,20,30 eller "
+            "0101,1101,2101,3101"
+        )
+        return
+    logger.info("Kor hemkorning vid uppstart...")
+    motor.home_and_wait()
+    state = motor.get_state()
+    if state.get("homed"):
+        logger.info("Hemkorning klar - hjulet star i hemlaget")
+    else:
+        # Misslyckad hemkorning stoppar inte uppstarten: felet syns pa
+        # webbsidan och gar att atgarda dar, och AR:s kommandofoljder kan
+        # fortfarande utlosa ett nytt forsok.
+        logger.error(
+            "Hemkorning vid uppstart misslyckades: %s", state.get("error"),
+        )
+
+
 if __name__ == "__main__":
-    # Ingen hemkorning vid uppstart. Hjulet ska ALDRIG ga till hemlaget av
-    # sig sjalvt - bara nar AR skickat hela foljden 00,10,20,30 (setup-menyn)
-    # eller 0101,1101,2101,3101 (over till kalibreringslage), se
-    # MENU_ENTRY_SEQUENCE/KALIBRERINGS_SEQUENCE i serial_listener.py, eller
-    # nar nagon trycker Hemkorning pa webbsidan. Tills dess ar laget okant och
-    # goto-kommandon avvisas med "Ej hemkord" (stepper.py _do_goto).
-    logger.info(
-        "Startar RS232-lyssnaren utan hemkorning - hjulet star kvar tills "
-        "AR skickat 00,10,20,30 eller 0101,1101,2101,3101"
-    )
     # Tand statuslampan - tyst om dioden saknas eller inte fungerar
     status_led.on()
+    _hemkorning_vid_uppstart()
     serial_listener.start()
     logger.info(
         "Startar webbserver pa http://%s:%d", config.WEB_HOST, config.WEB_PORT,
