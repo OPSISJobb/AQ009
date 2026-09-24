@@ -119,7 +119,7 @@ HOME_ON_STARTUP = True
 # igen - inte av knapptryck pa webbsidan. Kraver SERIAL_ENABLED = True;
 # ar RS232-lyssnaren avstangd startas ingen vakthund.
 # Testad med 8, 0.5, "2", och stänger av sig på 0, None
-IDLE_HOME_AFTER_HOURS = 8
+IDLE_HOME_AFTER_HOURS = None
 
 # Hur ofta vakthunden tittar pa klockan (sekunder). Behover normalt inte
 # andras - lagre varde ger bara tatare kontroller, inte tidigare hemkorning.
